@@ -1,4 +1,4 @@
-# MyDB – Intelligent Database Learning & Management Tool
+# MyDB – AI Powered Database Manager
 
 ## Overview
 
