@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.mydb.controllers.MainWorkspaceController"
+            styleClass="workspace-root">
+    
+    <!-- Top Bar -->
+    <top>
+        <HBox styleClass="workspace-topbar" alignment="CENTER_LEFT" spacing="20">
+            <padding>
+                <Insets top="15" right="20" bottom="15" left="20"/>
+            </padding>
+           
+            <Button fx:id="backButton" text="Back" onAction="#handleBack" styleClass="back-button"/>
+            
+            <Separator orientation="VERTICAL"/>
+            
+            <Label text="Database:" styleClass="topbar-label"/>
+            <Label fx:id="databaseNameLabel" styleClass="database-name-label"/>
+            
+            <Region HBox.hgrow="ALWAYS"/>
+           <Button text="AI Settings" onAction="#handleAISettings" styleClass="icon-button"/>
+
+            <Button text="Refresh" onAction="#handleRefresh" styleClass="icon-button"/>
+            <Button text="Security" styleClass="icon-button"/>
+            <Button text="Help" styleClass="icon-button"/>
+         
+        </HBox>
+    </top>
+    
+    <!-- Main Content Area -->
+    <center>
+        <SplitPane dividerPositions="0.25" styleClass="main-split">
+            
+            <!-- Left Panel: Tree View -->
+            <VBox styleClass="tree-panel">
+                <Label text="Database Structure" styleClass="panel-title">
+                    <VBox.margin>
+                        <Insets top="15" right="15" bottom="10" left="15"/>
+                    </VBox.margin>
+                </Label>
+                
+                <TreeView fx:id="databaseTreeView" VBox.vgrow="ALWAYS" styleClass="database-tree">
+                    <VBox.margin>
+                        <Insets top="0" right="10" bottom="10" left="10"/>
+                    </VBox.margin>
+                </TreeView>
+            </VBox>
+            
+            <!-- Right Panel: Main Workspace -->
+            <VBox styleClass="main-panel">
+                
+                <!-- Tab Pane for different features -->
+                <TabPane fx:id="mainTabPane" VBox.vgrow="ALWAYS" styleClass="feature-tabs"/>
+                
+            </VBox>
+            
+        </SplitPane>
+    </center>
+    
+    <!-- Bottom: Terminal Output -->
+    <bottom>
+        <VBox styleClass="terminal-panel">
+            <Label text="Terminal Output" styleClass="terminal-title">
+                <VBox.margin>
+                    <Insets top="10" right="15" bottom="5" left="15"/>
+                </VBox.margin>
+            </Label>
+            
+            <TextArea fx:id="terminalOutput" editable="false" 
+                      prefRowCount="6" wrapText="true" 
+                      styleClass="terminal-output">
+                <VBox.margin>
+                    <Insets top="0" right="10" bottom="10" left="10"/>
+                </VBox.margin>
+            </TextArea>
+        </VBox>
+    </bottom>
+    
+    <!-- Mode Toggle (will be in Query Editor tab) -->
+    <fx:define>
+        <ToggleGroup fx:id="modeGroup"/>
+        <RadioButton fx:id="mysqlModeRadio" text="MySQL Mode" toggleGroup="$modeGroup"/>
+        <RadioButton fx:id="aiModeRadio" text="AI Mode (NLP)" toggleGroup="$modeGroup"/>
+    </fx:define>
+    
+</BorderPane>

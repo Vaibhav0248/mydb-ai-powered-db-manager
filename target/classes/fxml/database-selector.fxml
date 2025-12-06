@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Text?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.mydb.controllers.DatabaseSelectorController"
+            styleClass="selector-root">
+    
+    <!-- Top Bar -->
+    <top>
+        <HBox styleClass="top-bar" alignment="CENTER_LEFT" spacing="20">
+            <padding>
+                <Insets top="20" right="30" bottom="20" left="30"/>
+            </padding>
+            
+            <Text text="MyDB" styleClass="header-logo"/>
+            
+            <Region HBox.hgrow="ALWAYS"/>
+            
+            <Label fx:id="welcomeLabel" styleClass="welcome-label"/>
+            
+            <Button fx:id="refreshButton" text="Refresh" 
+                    onAction="#handleRefresh" 
+                    styleClass="icon-button"/>
+            
+            <Button fx:id="logoutButton" text="Logout" 
+                    onAction="#handleLogout" 
+                    styleClass="icon-button"/>
+        </HBox>
+    </top>
+    
+    <!-- Main Content -->
+    <center>
+        <VBox spacing="30" styleClass="content-area">
+            <padding>
+                <Insets top="40" right="40" bottom="40" left="40"/>
+            </padding>
+            
+            <!-- Header Section -->
+            <VBox spacing="10" alignment="CENTER">
+                <Text text="Select Database" styleClass="page-title"/>
+                <Text text="Choose a database to manage" styleClass="page-subtitle"/>
+            </VBox>
+            
+            <!-- Loading Indicator -->
+            <HBox alignment="CENTER">
+                <ProgressIndicator fx:id="loadingIndicator" visible="false"/>
+            </HBox>
+            
+            <!-- Databases Container -->
+            <ScrollPane fitToWidth="true" styleClass="scroll-pane">
+                <VBox fx:id="databaseContainer" spacing="15" styleClass="database-grid">
+                    <padding>
+                        <Insets top="10" right="10" bottom="10" left="10"/>
+                    </padding>
+                </VBox>
+            </ScrollPane>
+            
+            <!-- Manage Account Button -->
+            <HBox alignment="CENTER">
+                <Button text="Manage Account" 
+                        onAction="#handleManageAccount" 
+                        styleClass="secondary-button"/>
+            </HBox>
+            
+        </VBox>
+    </center>
+    
+</BorderPane>
