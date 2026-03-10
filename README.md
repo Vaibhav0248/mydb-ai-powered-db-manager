@@ -114,3 +114,7 @@ mvn clean compile
 ```bash
 mvn javafx:run
 ```
+---
+
+## Contributions
+This project represents the collective team efforts.
