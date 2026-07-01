@@ -106,17 +106,56 @@ MyDB is a JavaFX desktop application that makes working with MySQL databases eas
 
 ## How to Build and Run
 
-### Using Maven
+### Running Locally with Maven
 
-1. Clean and build the project
-```bash
-mvn clean compile
-```
+1. Clean and build the project:
+   ```bash
+   mvn clean compile
+   ```
 
-2. Run the JavaFX application
-```bash
-mvn javafx:run
-```
+2. Run the JavaFX application:
+   ```bash
+   mvn javafx:run
+   ```
+
+### Packaging (Creating a Windows Installer/EXE)
+
+To package the application into a standalone Windows installer using `jpackage`, follow these steps:
+
+1. **Clean and Package** the application to generate the JAR file:
+   ```bash
+   mvn clean package
+   ```
+
+2. **Copy dependencies** into the packaging input folder:
+   ```bash
+   mvn dependency:copy-dependencies -DoutputDirectory=target/package-input
+   ```
+
+3. **Copy the main application JAR** into the packaging input folder:
+   ```powershell
+   Copy-Item target\MyDB-1.0.0.jar target\package-input\MyDB-1.0.0.jar
+   ```
+
+4. **Run `jpackage`** (make sure to specify `com.mydb.Launcher` as the main class to avoid JavaFX launcher issues on the classpath):
+   ```powershell
+   jpackage `
+     --type exe `
+     --name MyDB `
+     --app-version 1.0.0 `
+     --vendor "github.com/Vaibhav0248" `
+     --input target\package-input `
+     --main-jar MyDB-1.0.0.jar `
+     --main-class com.mydb.Launcher `
+     --icon src\main\resources\icons\logo.ico `
+     --dest target\installer `
+     --win-menu `
+     --win-shortcut `
+     --win-dir-chooser `
+     --win-per-user-install `
+     --java-options "--enable-native-access=ALL-UNNAMED"
+   ```
+
 ---
 
 ## Contributions
