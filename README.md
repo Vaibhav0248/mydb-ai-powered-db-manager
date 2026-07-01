@@ -6,6 +6,14 @@ MyDB is a JavaFX desktop application that makes working with MySQL databases eas
 
 ---
 
+## Download
+
+You can download the pre-built installer for Windows:
+* **[Download MyDB Installer (.exe)](https://github.com/Vaibhav0248/mydb-ai-powered-db-manager/releases/download/v1.0.0/MyDB-1.0.0.exe)**
+* **[View v1.0.0 Release Notes](https://github.com/Vaibhav0248/mydb-ai-powered-db-manager/releases/tag/v1.0.0)**
+
+---
+
 ## Features
 
 ### 1. Table View (CRUD)
