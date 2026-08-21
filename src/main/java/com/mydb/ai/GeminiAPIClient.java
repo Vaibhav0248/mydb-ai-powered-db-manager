@@ -36,9 +36,8 @@ public class GeminiAPIClient {
         }
 
         try {
-            // CORRECT 2025 API: v1 endpoint with gemini-2.5-flash
             URI uri = new URI(
-                "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=" + API_KEY
+                "https://generativelanguage.googleapis.com/v1/models/gemini-3.5-flash:generateContent?key=" + API_KEY
             );
 
             requestBuilder = HttpRequest.newBuilder()
