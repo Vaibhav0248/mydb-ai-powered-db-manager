@@ -47,11 +47,14 @@
             
             <!-- Left Panel: Tree View -->
             <VBox styleClass="tree-panel">
-                <Label text="Database Structure" styleClass="panel-title">
+                <HBox alignment="CENTER_LEFT" spacing="10">
                     <VBox.margin>
                         <Insets top="15" right="15" bottom="10" left="15"/>
                     </VBox.margin>
-                </Label>
+                    <Label text="Database Structure" styleClass="panel-title"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button text="+" onAction="#handleAddStructure" styleClass="add-structure-button"/>
+                </HBox>
                 
                 <TreeView fx:id="databaseTreeView" VBox.vgrow="ALWAYS" styleClass="database-tree">
                     <VBox.margin>

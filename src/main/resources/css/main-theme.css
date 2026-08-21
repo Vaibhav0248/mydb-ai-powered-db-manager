@@ -273,6 +273,20 @@
     -fx-text-fill: #333;
 }
 
+.add-structure-button {
+    -fx-background-color: #667eea;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-padding: 2px 10px;
+    -fx-background-radius: 4px;
+    -fx-cursor: hand;
+}
+
+.add-structure-button:hover {
+    -fx-background-color: #5568d3;
+}
+
 .database-tree {
     -fx-background-color: white;
     -fx-border-color: transparent;

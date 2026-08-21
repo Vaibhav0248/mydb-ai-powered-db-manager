@@ -28,6 +28,9 @@ import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
 import org.kordamp.ikonli.javafx.FontIcon;
@@ -759,5 +762,164 @@ public class MainWorkspaceController {
         mainTabPane.getSelectionModel().select(securityTab);
 
         logToTerminal("Security Monitor opened");
+    }
+
+    @FXML
+    private void handleAddStructure() {
+        TreeItem<String> selectedItem = databaseTreeView.getSelectionModel().getSelectedItem();
+        
+        boolean isTableSelected = false;
+        String selectedTableName = null;
+        if (selectedItem != null && selectedItem.getParent() != null && selectedItem.getParent() == databaseTreeView.getRoot()) {
+            isTableSelected = true;
+            selectedTableName = selectedItem.getValue();
+        }
+        
+        if (isTableSelected) {
+            ChoiceDialog<String> dialog = new ChoiceDialog<>(
+                "Add Column to '" + selectedTableName + "'",
+                "Create New Table",
+                "Add Column to '" + selectedTableName + "'"
+            );
+            dialog.setTitle("Database Structure Update");
+            dialog.setHeaderText("Choose an action for database: " + currentDatabase);
+            dialog.setContentText("Select Action:");
+            dialog.getDialogPane().setPrefWidth(450);
+            
+            Optional<String> result = dialog.showAndWait();
+            if (result.isPresent()) {
+                if (result.get().equals("Create New Table")) {
+                    promptCreateTable();
+                } else {
+                    promptAddColumn(selectedTableName);
+                }
+            }
+        } else {
+            promptCreateTable();
+        }
+    }
+
+    private void promptCreateTable() {
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Create New Table");
+        dialog.setHeaderText("Create a new table in " + currentDatabase);
+        dialog.getDialogPane().setPrefWidth(450);
+        
+        ButtonType createButtonType = new ButtonType("Create", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(createButtonType, ButtonType.CANCEL);
+        
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 150, 10, 10));
+        
+        TextField tableNameField = new TextField();
+        tableNameField.setPromptText("users");
+        
+        TextField columnNameField = new TextField("id");
+        columnNameField.setPromptText("id");
+        
+        TextField columnTypeField = new TextField("INT AUTO_INCREMENT PRIMARY KEY");
+        columnTypeField.setPromptText("INT AUTO_INCREMENT PRIMARY KEY");
+        
+        grid.add(new Label("Table Name:"), 0, 0);
+        grid.add(tableNameField, 1, 0);
+        grid.add(new Label("First Column Name:"), 0, 1);
+        grid.add(columnNameField, 1, 1);
+        grid.add(new Label("Column Type:"), 0, 2);
+        grid.add(columnTypeField, 1, 2);
+        
+        dialog.getDialogPane().setContent(grid);
+        
+        Platform.runLater(tableNameField::requestFocus);
+        
+        Optional<ButtonType> result = dialog.showAndWait();
+        if (result.isPresent() && result.get() == createButtonType) {
+            String tableName = tableNameField.getText().trim();
+            String columnName = columnNameField.getText().trim();
+            String columnType = columnTypeField.getText().trim();
+            
+            if (tableName.isEmpty() || columnName.isEmpty() || columnType.isEmpty()) {
+                showWarning("Fields Required", "All fields are required to create a table.");
+                return;
+            }
+            
+            if (!tableName.matches("^[a-zA-Z0-9_]+$") || !columnName.matches("^[a-zA-Z0-9_]+$")) {
+                showWarning("Invalid Name", "Table and column names must only contain alphanumeric characters and underscores.");
+                return;
+            }
+            
+            String sql = String.format("CREATE TABLE `%s` (`%s` %s)", tableName, columnName, columnType);
+            executeStructureSQL(sql, "Table '" + tableName + "' created successfully!");
+        }
+    }
+
+    private void promptAddColumn(String tableName) {
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Add New Column");
+        dialog.setHeaderText("Add a new column to table: " + tableName);
+        dialog.getDialogPane().setPrefWidth(450);
+        
+        ButtonType addButtonType = new ButtonType("Add Column", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
+        
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 150, 10, 10));
+        
+        TextField columnNameField = new TextField();
+        columnNameField.setPromptText("email");
+        
+        TextField columnTypeField = new TextField("VARCHAR(255)");
+        columnTypeField.setPromptText("VARCHAR(255)");
+        
+        grid.add(new Label("Column Name:"), 0, 0);
+        grid.add(columnNameField, 1, 0);
+        grid.add(new Label("Column Type:"), 0, 1);
+        grid.add(columnTypeField, 1, 1);
+        
+        dialog.getDialogPane().setContent(grid);
+        
+        Platform.runLater(columnNameField::requestFocus);
+        
+        Optional<ButtonType> result = dialog.showAndWait();
+        if (result.isPresent() && result.get() == addButtonType) {
+            String columnName = columnNameField.getText().trim();
+            String columnType = columnTypeField.getText().trim();
+            
+            if (columnName.isEmpty() || columnType.isEmpty()) {
+                showWarning("Fields Required", "All fields are required to add a column.");
+                return;
+            }
+            
+            if (!columnName.matches("^[a-zA-Z0-9_]+$")) {
+                showWarning("Invalid Name", "Column name must only contain alphanumeric characters and underscores.");
+                return;
+            }
+            
+            String sql = String.format("ALTER TABLE `%s` ADD COLUMN `%s` %s", tableName, columnName, columnType);
+            executeStructureSQL(sql, "Column '" + columnName + "' added to '" + tableName + "' successfully!");
+        }
+    }
+
+    private void executeStructureSQL(String sql, String successMessage) {
+        logToTerminal("Executing: " + sql);
+        new Thread(() -> {
+            try {
+                Connection conn = DatabaseConnection.getConnection(currentDatabase);
+                Statement stmt = conn.createStatement();
+                stmt.executeUpdate(sql);
+                Platform.runLater(() -> {
+                    logToTerminal("✓ " + successMessage);
+                    loadDatabaseStructure(); // Refresh tree
+                });
+            } catch (Exception e) {
+                Platform.runLater(() -> {
+                    logToTerminal("✗ ERROR: " + e.getMessage());
+                    showError("Structure Update Error", "Failed to update database structure:\n\n" + e.getMessage());
+                });
+            }
+        }).start();
     }
 }
