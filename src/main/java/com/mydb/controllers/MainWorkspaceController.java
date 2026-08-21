@@ -382,11 +382,42 @@ public class MainWorkspaceController {
         modeLabel.setStyle("-fx-font-weight: bold;");
         modeToolbar.getItems().addAll(modeLabel, mysqlModeRadio, aiModeRadio);
 
-        TextArea queryInput = new TextArea();
-        queryInput.setPromptText("Enter your SQL query here or use natural language in AI mode...");
-        queryInput.setPrefRowCount(10);
-        queryInput.setStyle("-fx-font-family: 'Courier New'; -fx-font-size: 14px;");
+        // --- MYSQL MODE CONTROLS ---
+        VBox mysqlContainer = new VBox(10);
+        TextArea mysqlQueryInput = new TextArea();
+        mysqlQueryInput.setPromptText("Enter your SQL query here...");
+        mysqlQueryInput.setPrefRowCount(10);
+        mysqlQueryInput.setStyle("-fx-font-family: 'Courier New'; -fx-font-size: 14px;");
+        mysqlContainer.getChildren().add(mysqlQueryInput);
 
+        // --- AI MODE CONTROLS ---
+        VBox aiContainer = new VBox(12);
+
+        Label nlpLabel = new Label("NLP Input:");
+        nlpLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #444;");
+
+        TextArea nlpInput = new TextArea();
+        nlpInput.setPromptText("Enter natural language prompt here (e.g., 'Show all tables')...");
+        nlpInput.setPrefRowCount(4);
+        nlpInput.setStyle("-fx-font-family: 'Segoe UI'; -fx-font-size: 14px;");
+
+        Button generateBtn = new Button("Generate SQL");
+        generateBtn.setStyle("-fx-background-color: #667eea; -fx-text-fill: white; -fx-font-weight: bold;");
+        FontIcon magicIcon = new FontIcon(FontAwesomeSolid.MAGIC);
+        magicIcon.setIconColor(Color.WHITE);
+        generateBtn.setGraphic(magicIcon);
+
+        Label sqlLabel = new Label("SQL AI Generated (Editable):");
+        sqlLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #444;");
+
+        TextArea generatedSqlInput = new TextArea();
+        generatedSqlInput.setPromptText("Generated SQL will appear here. You can edit it before executing...");
+        generatedSqlInput.setPrefRowCount(5);
+        generatedSqlInput.setStyle("-fx-font-family: 'Courier New'; -fx-font-size: 14px;");
+
+        aiContainer.getChildren().addAll(nlpLabel, nlpInput, generateBtn, sqlLabel, generatedSqlInput);
+
+        // --- MAIN BUTTON BAR ---
         ToolBar buttonBar = new ToolBar();
         Button executeBtn = new Button("Execute Query");
         executeBtn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold;");
@@ -406,33 +437,57 @@ public class MainWorkspaceController {
         FontIcon exportIcon = new FontIcon(FontAwesomeSolid.FILE_EXPORT);
         exportBtn.setGraphic(exportIcon);
 
-        // Results table must be declared BEFORE using in handler
         TableView<ObservableList<String>> resultsTable = new TableView<>();
         resultsTable.setPlaceholder(new Label("Query results will appear here"));
 
         exportBtn.setOnAction(e -> handleExportResults(resultsTable));
-
         buttonBar.getItems().addAll(executeBtn, clearBtn, copyBtn, exportBtn);
 
+        // --- VISIBILITY / LAYOUT MANAGEMENT ---
+        mysqlContainer.visibleProperty().bind(mysqlModeRadio.selectedProperty());
+        mysqlContainer.managedProperty().bind(mysqlModeRadio.selectedProperty());
+
+        aiContainer.visibleProperty().bind(aiModeRadio.selectedProperty());
+        aiContainer.managedProperty().bind(aiModeRadio.selectedProperty());
+
+        // --- ACTIONS ---
+        generateBtn.setOnAction(e -> {
+            String prompt = nlpInput.getText().trim();
+            if (!prompt.isEmpty()) {
+                generateSQLFromNLP(prompt, generatedSqlInput);
+            } else {
+                showWarning("Input Required", "Please enter a natural language prompt first.");
+            }
+        });
+
         executeBtn.setOnAction(e -> {
-            String query = queryInput.getText().trim();
-            if (!query.isEmpty()) {
-                if (aiModeRadio.isSelected()) {
-                    executeAIQuery(query, resultsTable);
-                } else {
+            if (mysqlModeRadio.isSelected()) {
+                String query = mysqlQueryInput.getText().trim();
+                if (!query.isEmpty()) {
                     executeQuery(query, resultsTable);
+                } else {
+                    showWarning("Query Required", "Please enter a SQL query to execute.");
+                }
+            } else {
+                String query = generatedSqlInput.getText().trim();
+                if (!query.isEmpty()) {
+                    executeQuery(query, resultsTable);
+                } else {
+                    showWarning("SQL Required", "Please generate or enter a SQL query to execute.");
                 }
             }
         });
 
         clearBtn.setOnAction(e -> {
-            queryInput.clear();
+            mysqlQueryInput.clear();
+            nlpInput.clear();
+            generatedSqlInput.clear();
             resultsTable.getItems().clear();
             resultsTable.getColumns().clear();
         });
 
         copyBtn.setOnAction(e -> {
-            String text = queryInput.getText();
+            String text = mysqlModeRadio.isSelected() ? mysqlQueryInput.getText() : generatedSqlInput.getText();
             Clipboard clipboard = Clipboard.getSystemClipboard();
             ClipboardContent content = new ClipboardContent();
             content.putString(text);
@@ -440,7 +495,7 @@ public class MainWorkspaceController {
             logToTerminal("Query copied to clipboard!");
         });
 
-        container.getChildren().addAll(modeToolbar, queryInput, buttonBar, resultsTable);
+        container.getChildren().addAll(modeToolbar, mysqlContainer, aiContainer, buttonBar, resultsTable);
         return container;
     }
 
@@ -473,7 +528,7 @@ public class MainWorkspaceController {
         }).start();
     }
 
-    private void executeAIQuery(String naturalLanguage, TableView<ObservableList<String>> resultsTable) {
+    private void generateSQLFromNLP(String naturalLanguage, TextArea outputArea) {
         if (!GeminiAPIClient.isConfigured()) {
             TextInputDialog dialog = new TextInputDialog();
             dialog.setTitle("Gemini API Key Required");
@@ -496,6 +551,9 @@ public class MainWorkspaceController {
         logToTerminal("AI Mode: Converting natural language to SQL...");
         logToTerminal("Input: " + naturalLanguage);
 
+        outputArea.setText("Generating SQL... Please wait.");
+        outputArea.setDisable(true);
+
         new Thread(() -> {
             try {
                 String schema = DatabaseSchemaExtractor.extractSchema(currentDatabase);
@@ -509,32 +567,17 @@ public class MainWorkspaceController {
                 String generatedSQL = aiClient.generateSQLQuery(naturalLanguage, schema);
 
                 Platform.runLater(() -> {
-                    logToTerminal("Generated SQL: " + generatedSQL);
-                    logToTerminal("Executing AI-generated query...");
+                    logToTerminal("Generated SQL successfully!");
+                    outputArea.setText(generatedSQL);
+                    outputArea.setDisable(false);
                 });
-
-                Connection conn = DatabaseConnection.getConnection(currentDatabase);
-                Statement stmt = conn.createStatement();
-
-                boolean hasResults = stmt.execute(generatedSQL);
-
-                if (hasResults) {
-                    ResultSet rs = stmt.getResultSet();
-                    displayResults(rs, resultsTable);
-                    Platform.runLater(() -> {
-                        logToTerminal("✓ AI Query executed successfully!");
-                    });
-                } else {
-                    int rowsAffected = stmt.getUpdateCount();
-                    Platform.runLater(() -> {
-                        logToTerminal("✓ Query executed successfully. " + rowsAffected + " row(s) affected.");
-                    });
-                }
 
             } catch (Exception e) {
                 Platform.runLater(() -> {
                     logToTerminal("✗ ERROR: " + e.getMessage());
-                    showError("AI Query Error", "Failed to generate or execute query:\n\n" + e.getMessage() +
+                    outputArea.clear();
+                    outputArea.setDisable(false);
+                    showError("AI Query Error", "Failed to generate query:\n\n" + e.getMessage() +
                             "\n\nTip: Try rephrasing your question or be more specific.");
                 });
             }
