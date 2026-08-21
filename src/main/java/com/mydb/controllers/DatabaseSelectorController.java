@@ -11,6 +11,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.layout.TilePane;
 import javafx.scene.paint.Color;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
@@ -20,10 +21,11 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class DatabaseSelectorController {
     
-    @FXML private VBox databaseContainer;
+    @FXML private TilePane databaseContainer;
     @FXML private Label welcomeLabel;
     @FXML private Button refreshButton;
     @FXML private Button logoutButton;
@@ -102,7 +104,8 @@ public class DatabaseSelectorController {
         VBox card = new VBox(15);
         card.setAlignment(Pos.CENTER_LEFT);
         card.getStyleClass().add("database-card");
-        card.setPrefHeight(120);
+        card.setPrefWidth(280);
+        card.setPrefHeight(150);
         
         // Database icon and name
         HBox header = new HBox(15);
@@ -158,8 +161,36 @@ public class DatabaseSelectorController {
     }
     
     @FXML
-    private void handleManageAccount() {
-        showInfo("Manage Account feature coming soon!");
+    private void handleCreateDatabase() {
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Create Database");
+        dialog.setHeaderText("Create a new MySQL database");
+        dialog.setContentText("Database Name:");
+        
+        Optional<String> result = dialog.showAndWait();
+        if (result.isPresent()) {
+            String dbName = result.get().trim();
+            if (dbName.isEmpty()) {
+                showError("Database name cannot be empty.");
+                return;
+            }
+            
+            // Validate database name (letters, numbers, underscores)
+            if (!dbName.matches("^[a-zA-Z0-9_]+$")) {
+                showError("Invalid database name. Only letters, numbers, and underscores are allowed.");
+                return;
+            }
+            
+            try {
+                Connection conn = DatabaseConnection.getConnection();
+                Statement stmt = conn.createStatement();
+                stmt.executeUpdate("CREATE DATABASE `" + dbName + "`");
+                showInfo("Database '" + dbName + "' created successfully!");
+                loadDatabases(); // Reload list
+            } catch (Exception e) {
+                showError("Failed to create database: " + e.getMessage());
+            }
+        }
     }
     
     private void showError(String message) {

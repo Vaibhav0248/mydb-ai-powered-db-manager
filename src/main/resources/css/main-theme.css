@@ -166,6 +166,20 @@
     -fx-background-color: transparent;
 }
 
+.database-scroll-pane {
+    -fx-background-color: white;
+    -fx-border-color: #e0e0e0;
+    -fx-border-width: 1.5px;
+    -fx-border-radius: 12px;
+    -fx-background-radius: 12px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.04), 10, 0, 0, 2);
+}
+
+.database-scroll-pane > .viewport {
+    -fx-background-color: white;
+    -fx-background-radius: 12px;
+}
+
 .database-grid {
     -fx-background-color: transparent;
 }

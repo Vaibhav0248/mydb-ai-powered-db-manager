@@ -58,18 +58,18 @@
             </HBox>
             
             <!-- Databases Container -->
-            <ScrollPane fitToWidth="true" styleClass="scroll-pane">
-                <VBox fx:id="databaseContainer" spacing="15" styleClass="database-grid">
+            <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" styleClass="scroll-pane, database-scroll-pane">
+                <TilePane fx:id="databaseContainer" hgap="20" vgap="20" styleClass="database-grid">
                     <padding>
-                        <Insets top="10" right="10" bottom="10" left="10"/>
+                        <Insets top="20" right="20" bottom="20" left="20"/>
                     </padding>
-                </VBox>
+                </TilePane>
             </ScrollPane>
             
-            <!-- Manage Account Button -->
+            <!-- Create Database Button -->
             <HBox alignment="CENTER">
-                <Button text="Manage Account" 
-                        onAction="#handleManageAccount" 
+                <Button text="Create a new Database" 
+                        onAction="#handleCreateDatabase" 
                         styleClass="secondary-button"/>
             </HBox>
             
